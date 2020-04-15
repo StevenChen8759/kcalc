@@ -127,6 +127,8 @@ noinline int user_func_fib(struct expr_func *f, vec_expr_t args, void *c)
     (void) args;
     (void) c;
 
+    pr_info("user_func_fib");
+
     return 77777;
 }
 

@@ -16,10 +16,24 @@
  * LSB all 1 is NaN
  */
 
+
+#if 0
+MODULE_LICENSE("Dual MIT/GPL");
+MODULE_AUTHOR("National Cheng Kung University, Taiwan");
+MODULE_DESCRIPTION("Math expression evaluation");
+MODULE_VERSION("0.1");
+#endif
+
 /*
  * Expression data types
  */
 
+#if 0
+#define GET_FRAC(n) \
+    (int x = n & 15; if (x & 8) return -(((~x) & 15) + 1); return x;)
+#endif
+
+#if 1
 static int GET_FRAC(int n)
 {
     int x = n & 15;
@@ -28,6 +42,7 @@ static int GET_FRAC(int n)
 
     return x;
 }
+#endif
 
 static int FP2INT(int n, int d)
 {

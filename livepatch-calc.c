@@ -8,12 +8,66 @@
 
 #include "expression.h"
 
+#define GET_NUM_LP(n) ((n) >> 4)
+
 MODULE_LICENSE("Dual MIT/GPL");
 MODULE_AUTHOR("National Cheng Kung University, Taiwan");
 MODULE_DESCRIPTION("Patch calc kernel module");
 MODULE_VERSION("0.1");
 
+int GET_FRAC_LP(int n)
+{
+    int x = n & 15;
+    if (x & 8)
+        return -(((~x) & 15) + 1);
 
+    return x;
+}
+
+int FP2INT_LP(int n, int d)
+{
+    /* Tailed zero counting */
+    while (n && n % 10 == 0) {
+        ++d;
+        n /= 10;
+    }
+    if (d == -1) {
+        n *= 10;
+        --d;
+    }
+
+    return ((n << 4) | (d & 15));
+}
+
+/* Fibonacci Number calculating via fast doubling */
+int fibn(int n)
+{
+    int t0 = 1, t1 = 1;  // For F[n], F[n+1]
+    int t3 = 1, t4 = 0;  // For F[2n], F[2n+1]
+
+    int i = 1;
+
+    if (n <= 0)
+        return 0;
+    else if (n > 40)  // Limitation for fixed point number
+        return -1;
+
+    while (i < n) {
+        if ((i << 1) <= n) {
+            t4 = t1 * t1 + t0 * t0;
+            t3 = t0 * (2 * t1 - t0);
+            t0 = t3;
+            t1 = t4;
+            i = i << 1;
+        } else {
+            t0 = t3;
+            t3 = t4;
+            t4 = t0 + t4;
+            i++;
+        }
+    }
+    return t3;
+}
 
 void livepatch_nop_cleanup(struct expr_func *f, void *c)
 {
@@ -26,7 +80,7 @@ int livepatch_nop(struct expr_func *f, vec_expr_t args, void *c)
 {
     (void) args;
     (void) c;
-    pr_err("function nop is now patched\n");
+    pr_info("function nop is now patched\n");
     return 640;
 }
 
@@ -41,8 +95,24 @@ int livepatch_fib(struct expr_func *f, vec_expr_t args, void *c)
     (void) args;
     (void) c;
 
-    pr_err("function fib is now patched\n");
-    return 640;
+    pr_info("function fib is now patched, type: %d\n", args.buf[0].type);
+
+    if (args.buf[0].type != 25) {  // For marco OP_CONST
+        pr_err("Input argument for fib() error...");
+        return -1;
+    }
+
+    struct expr x = vec_pop(&args);
+    int ipn = GET_NUM_LP(x.param.num.value),
+        cnt = GET_FRAC_LP(x.param.num.value);
+
+    while (cnt--)
+        ipn *= 10;
+
+    pr_info("%d, %d, %d, %d\n", x.param.num.value, ipn, cnt,
+            FP2INT_LP(ipn, cnt));
+
+    return FP2INT_LP(fibn(ipn), 0);
 }
 
 /* clang-format off */
@@ -65,6 +135,7 @@ static struct klp_func funcs[] = {
     },
     {},
 };
+
 static struct klp_object objs[] = {
     {
         .name = "calc",
