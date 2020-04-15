@@ -95,7 +95,12 @@ int livepatch_fib(struct expr_func *f, vec_expr_t args, void *c)
     (void) args;
     (void) c;
 
-    pr_info("function fib is now patched, type: %d\n", args.buf[0].type);
+    pr_info("function fib is now patched, address of args: %p\n", &args);
+
+    if (args.len == 0) {
+        pr_err("No any parameter input...");
+        return -1;
+    }
 
     if (args.buf[0].type != 25) {  // For marco OP_CONST
         pr_err("Input argument for fib() error...");
