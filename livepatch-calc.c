@@ -13,6 +13,8 @@ MODULE_AUTHOR("National Cheng Kung University, Taiwan");
 MODULE_DESCRIPTION("Patch calc kernel module");
 MODULE_VERSION("0.1");
 
+
+
 void livepatch_nop_cleanup(struct expr_func *f, void *c)
 {
     /* suppress compilation warnings */
@@ -25,7 +27,22 @@ int livepatch_nop(struct expr_func *f, vec_expr_t args, void *c)
     (void) args;
     (void) c;
     pr_err("function nop is now patched\n");
-    return 0;
+    return 640;
+}
+
+void livepatch_fib_cleanup(struct expr_func *f, void *c)
+{
+    (void) f;
+    (void) c;
+}
+
+int livepatch_fib(struct expr_func *f, vec_expr_t args, void *c)
+{
+    (void) args;
+    (void) c;
+
+    pr_err("function fib is now patched\n");
+    return 640;
 }
 
 /* clang-format off */
@@ -37,6 +54,14 @@ static struct klp_func funcs[] = {
     {
         .old_name = "user_func_nop_cleanup",
         .new_func = livepatch_nop_cleanup,
+    },
+    {
+        .old_name = "user_func_fib",
+        .new_func = livepatch_fib,
+    },
+    {
+        .old_name = "user_func_fib_cleanup",
+        .new_func = livepatch_fib_cleanup,
     },
     {},
 };

@@ -116,8 +116,23 @@ noinline int user_func_nop(struct expr_func *f, vec_expr_t args, void *c)
     return 0;
 }
 
+noinline void user_func_fib_cleanup(struct expr_func *f, void *c)
+{
+    (void) f;
+    (void) c;
+}
+
+noinline int user_func_fib(struct expr_func *f, vec_expr_t args, void *c)
+{
+    (void) args;
+    (void) c;
+
+    return 77777;
+}
+
 static struct expr_func user_funcs[] = {
     {"nop", user_func_nop, user_func_nop_cleanup, 0},
+    {"fib", user_func_fib, user_func_fib_cleanup, 0},
     {NULL, NULL, NULL, 0},
 };
 
