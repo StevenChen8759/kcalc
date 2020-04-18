@@ -95,9 +95,9 @@ int livepatch_fib(struct expr_func *f, vec_expr_t args, void *c)
     (void) args;
     (void) c;
 
-    pr_info("function fib is now patched, address of args: %p\n", &args);
+    pr_info("function fib is now patched\n");
 
-    if (args.len == 0) {
+    if (vec_len(&args) == 0) {
         pr_err("No any parameter input...");
         return -1;
     }
